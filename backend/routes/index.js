@@ -231,9 +231,8 @@ router.get("/ratio", async (req, res) => {
   }
 });
 
-
-
 // question
+//문제 추가
 router.post("/question", async (req, res) => {
   try {
     let temp = req.body;
@@ -282,6 +281,7 @@ async function createQuestion(temp) {
   });
 }
 
+// 문제 전체 출력 (유형별)
 router.get("/question", async (req, res) => {
   const { qualification_type } = req.query;
   console.log(`get question by qualification_type`);
@@ -304,6 +304,7 @@ router.get("/question", async (req, res) => {
   }
 });
 
+// 문제 출력 (개별)
 router.get("/question-detail", async (req, res) => {
   const { _id } = req.query;
   console.log(`get each question by _id`);
@@ -316,6 +317,32 @@ router.get("/question-detail", async (req, res) => {
 
     const question = qid.toObject({ getters: false });
     res.status(200).json(question);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+// 문제 삭제 
+router.delete("/question", async (req,res) => {
+  const { _id, user_id, qualification_type } = req.query;
+  console.log(`delete question by _id: ${_id} and user_id: ${user_id}`);
+  try{
+    const result = await Question.qstModel.deleteOne({
+      _id: _id,
+      user_id: user_id
+    });
+
+    if (result.deletedCount === 1) {
+      // qstCounter 감소 
+      const findCount = await Question.qstCounter.findOne({ type: qualification_type });
+      findCount.count -= 1;
+      await findCount.save();
+    
+      res.status(200).json({ message: "Question deleted successfully" });
+    } else {
+      res.status(404).json({ message: "Question not found" });
+    }
+    
   } catch (err) {
     res.status(500).json(err);
   }
