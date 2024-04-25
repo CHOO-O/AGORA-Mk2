@@ -33,7 +33,7 @@ services:
     image:
       mongo:4
     volumes:
-      - /home/student/Agora/DevDB:/data/db
+      - /home/student/AGORA-Mk2/DevDB:/data/db
     networks:
       - backend-network
     restart: always
