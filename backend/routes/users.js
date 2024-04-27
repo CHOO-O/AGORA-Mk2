@@ -7,7 +7,8 @@ const db = mongoose.connection;
 
 const usersSchema = mongoose.Schema({
     _id: { type: String, required: [true, 'User_id is required'] },
-    password: { type: String, required: [true, 'Password Body is required'] }
+    password: { type: String, required: [true, 'Password Body is required'] },
+    is_admin: { type: Boolean, default: false } // admin = true , default = false
 });
 const usersModel = mongoose.model('Users', usersSchema);
 
@@ -34,7 +35,8 @@ const connectToMongoDB = async () => {
 const construct = (params) => {
     const user_id = params.user_id
     const password = params.password
-    const message = new usersModel({ _id: user_id, password: password })
+    const is_admin = params.is_admin
+    const message = new usersModel({ _id: user_id, password: password, is_admin: is_admin })
     return message
 };
 
