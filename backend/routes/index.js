@@ -19,7 +19,7 @@ router.post("/signup", (req, res) => {
       if (users) {
         return res.status(409).json({ message: "이미 가입된 유저입니다." });
       } else {
-        User.create({ user_id: req.body.user_id, password: req.body.password });
+        User.create({ user_id: req.body.user_id, password: req.body.password, is_admin: req.body.is_admin });
         res
           .status(201)
           .json({ user_id: req.body.user_id, message: "회원 가입 성공" });
@@ -55,7 +55,8 @@ router.post("/login", (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         return res.status(201).json({ // 상태 코드를 201로 변경
           success: true,
-          user_id: user.id // 사용자의 ID를 반환
+          user_id: user.id, // 사용자의 ID를 반환
+          is_admin: user.is_admin // admin 여부 반환
         });
       } else {
         return res.status(401).json({ success: false, message: "비밀번호가 틀렸습니다." });
