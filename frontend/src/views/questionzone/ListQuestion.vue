@@ -9,6 +9,8 @@
                 <button class="action-button" @click="goToSolvingQuestion(question.id)">문제 풀기</button>
                 <!-- 토론장 이동 버튼 -->
                 <button class="action-button" @click="goToDiscussQuestion(question.id)">토론장으로</button>
+                <!-- 삭제 버튼 -->
+                <button class="action-button" @click="deleteQuestion(question.id)">문제 삭제</button>
             </div>
         </div>
         <button class="add-button" @click="addQuestion">문제 추가</button>
@@ -16,13 +18,36 @@
 </template>
 
 <script>
-import axios from 'axios';
+// local test용
+
+/*
 
 export default {
     name: 'QuestionList',
     data() {
         return {
-            questions: [],
+            questions: [
+                {
+                    id: '1',
+                    user_id: 'test123',
+                    question_text: 'I am a boy',
+                },
+                {
+                    id: '2',
+                    user_id: 'test456',
+                    question_text: 'You are a girl',
+                },
+                {
+                    id: '3',
+                    user_id: 'test789',
+                    question_text: 'Oh no, don\'t do that!',
+                },
+                {
+                    id: '4',
+                    user_id: 'test101112',
+                    question_text: '언제끝나누',
+                },
+            ],
             searchTerm: '',
             qualification_type: '' // 초기값을 설정하지 않거나 적절한 값으로 설정합니다.
         };
@@ -46,6 +71,52 @@ export default {
         goToDiscussQuestion(questionId) {
             this.$router.push({ name: 'discussquestion', params: { questionId } });
         },
+        deleteQuestion(questionId){
+            const index = this.questions.findIndex(question => question.id === questionId);
+            if (index !== -1){
+                this.questions.splice(index, 1);
+            }
+        },
+    },
+    created() {
+        this.qualification_type = decodeURIComponent(this.$route.query.category || '');
+    }
+};
+
+*/
+
+// 3-tier 테스트용
+
+
+
+import axios from 'axios';
+
+export default {
+    name: 'QuestionList',
+    data(){
+        return {
+            questions: [],
+            searchTeam: '',
+            qualification_type: ''
+        };
+    },
+    computed: {
+        filteredQuestions() {
+            return this.questions.filter(question =>
+                question.question_text.toLowerCase().includes(this.searchTerm.toLowerCase())
+            );
+        }
+    },
+    methods: {
+        addQuestion() {
+            this.$router.push({ name: 'addquestion', query: { category: this.qualification_type } });
+        },
+        goToSolvingQuestion(questionId) {
+            this.$router.push({ name: 'solvingquestion', params: { questionId } });
+        },
+        goToDiscussQuestion(questionId) {
+            this.$router.push({ name: 'discussquestion', params: { questionId } });
+        },
         loadQuestions() {
             axios.get(`${process.env.VUE_APP_BACKEND_API}/question?qualification_type=${this.qualification_type}`, {
                 headers: {
@@ -60,14 +131,35 @@ export default {
             }).catch(error => {
                 console.error('Error loading questions:', error);
             });
-        }
+        },
+        deleteQuestion(questionId){
+            const index = this.questions.findIndex(question => question.id === questionId);
+            if (index !== -1){
+                axios.delete(`${process.env.VUE_APP_BACKEND_API}/question-detail?_id=${questionId}&user_id=${this.userId}&qualification_type=${this.qualification_type}`)
+                    .then(response => {
+                        if (response.status === 200){
+                            this.questions.splice(index, 1);
+                            alert('질문이 정상적으로 삭제되었습니다');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting the question:', error);
+                        alert('Failed to delete the question');
+                    });
+            }
+        },
     },
-    created() {
+    created(){
         this.qualification_type = decodeURIComponent(this.$route.query.category || '');
-        this.loadQuestions();
+        this.loadQuestions(); // 데이터 로딩을 위해 메서드 호출
     }
 };
+
+
+
 </script>
+
+
 
 <style scoped>
 .container {
