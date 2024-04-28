@@ -250,6 +250,50 @@ router.get("/answers/solcount", async(req, res) => {
   }
 });
 
+// 사용자가 푼 문제 조회
+router.get("/answers/questions", async(req, res) => {
+  console.log(`get solved questions`);
+  const id = req.query.user_id;
+
+  try {
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await User.usersModel.findOne({ _id: id });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // useranswer에서 id로 검색 후 반환
+    const answerkv = await UserAnswer.userAnswersModel.find(
+      { user_id: id }
+    );
+    
+    if (answerkv.length === 0) {
+      return res.status(404).json({ message: "No solved questions" });
+    }
+
+    // 가져온 값 question_id만 배열로 변환
+    const answerlist = answerkv.map(a => a.question_id);
+
+    // 배열을 이용해 해당하는 문제 출력
+    // $in 연산자 : 배열 안의 값 중 일치하는 값 찾기
+    const answerqsts = await Question.qstModel.find(
+      { _id:  { $in: answerlist }}
+    );
+
+    // document(mongoose)를 object로 변환(js)
+    const answers = {
+      data: answerqsts.map((q) => q.toObject( { getters: false }))
+    };
+
+    res.status(200).json(answers);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
 // 답 선택 비율 조회
 router.get("/ratio", async (req, res) => {
   try {
