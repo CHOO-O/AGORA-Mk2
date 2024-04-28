@@ -11,6 +11,7 @@ router.use(bodyParser.json());
 router.use(express.json());
 
 // users =========================================================================
+// 회원가입
 router.post("/signup", (req, res) => {
   console.log(`user collections`);
   try {
@@ -36,7 +37,7 @@ router.post("/signup", (req, res) => {
   }
 });
 
-//login sector
+// 로그인
 router.post("/login", (req, res) => {
   const { user_id, password } = req.body;
   // 요청된 user_id를 데이터베이스에서 찾는다.
@@ -66,6 +67,33 @@ router.post("/login", (req, res) => {
     return res.status(500).json({ success: false, message: "서버 처리 중 오류 발생" });
   }
 });
+
+// 유저 삭제 (탈퇴)
+router.post("/user/delete", async(req, res) => {
+  console.log(`delete user`);
+  const id = req.body.user_id;
+  const pwd = req.body.password;
+
+  try {
+    // 사용자 정보 조회
+    const user = await User.usersModel.findOne({ _id: id });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    // 비밀번호 일치 여부 확인
+    if (user.password !== pwd) {
+      return res.status(401).json({ message: "Invalid password" });
+    }
+
+    // 비밀번호가 일치하면 사용자 정보 삭제
+    await User.usersModel.deleteOne({ _id: id });
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+})
 
 // discussion =========================================================================
 router.post("/discussion", (req, res) => {
