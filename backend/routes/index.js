@@ -10,7 +10,7 @@ const router = express.Router();
 router.use(bodyParser.json());
 router.use(express.json());
 
-// user
+// users =========================================================================
 router.post("/signup", (req, res) => {
   console.log(`user collections`);
   try {
@@ -67,11 +67,7 @@ router.post("/login", (req, res) => {
   }
 });
 
-
-
-
-
-// discussion
+// discussion =========================================================================
 router.post("/discussion", (req, res) => {
   console.log(`create opinion`);
   try {
@@ -119,7 +115,7 @@ router.get("/discussion", (req, res) => {
   }
 });
 
-// userAnswers
+// userAnswers =========================================================================
 router.post("/answer", (req, res) => {
   console.log(`create answer`);
   try {
@@ -151,7 +147,6 @@ router.post("/answer", (req, res) => {
       res.status(500).json(err);
   }
 });
-
 
 router.get("/answer", (req, res) => {
   console.log(`get answer`);
@@ -232,7 +227,7 @@ router.get("/ratio", async (req, res) => {
   }
 });
 
-// question
+// question =========================================================================
 //문제 추가
 router.post("/question", async (req, res) => {
   try {
@@ -349,7 +344,8 @@ router.delete("/question", async (req,res) => {
   }
 });
 
-// category
+// category =========================================================================
+// 카테고리 추가
 router.post("/category", async (req, res) => {
   console.log(`add category`);
   try {
@@ -369,6 +365,7 @@ router.post("/category", async (req, res) => {
   }
 });
 
+// 카테고리 조회
 router.get("/category", async (req, res) => {
   console.log(`get category`);
   try {
@@ -379,5 +376,31 @@ router.get("/category", async (req, res) => {
     res.status(500).json(err);
   }
 });
+
+// 카테고리 삭제(하위 문제 전부 삭제)
+router.delete("/category", async (req,res) => {
+  const { qualification_type, is_admin } = req.query;
+  console.log(`delete catgory`);
+  
+  if(is_admin == 'true'){
+    try{
+      await Category.cateModel.deleteOne({
+        qualification_type: qualification_type
+      });
+      await Question.qstCounter.deleteOne({
+        type: qualification_type
+      })
+      await Question.qstModel.deleteMany({
+        qualification_type: qualification_type
+      })
+      res.status(200).json({ message: "Category and Questions deleted successfully" });
+    } catch (err) {
+      res.status(500).json(err);
+    }
+  } else {
+    res.status(403).json({ message: "deleted failed: not admin user"});
+  }
+});
+
 
 module.exports = router;
