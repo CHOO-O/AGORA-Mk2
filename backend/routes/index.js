@@ -144,6 +144,7 @@ router.get("/discussion", (req, res) => {
 });
 
 // userAnswers =========================================================================
+// 문제 풀기
 router.post("/answer", (req, res) => {
   console.log(`create answer`);
   try {
@@ -176,6 +177,7 @@ router.post("/answer", (req, res) => {
   }
 });
 
+// 특정 문제에 대한 유저의 답변 조회 *사용 안함
 router.get("/answer", (req, res) => {
   console.log(`get answer`);
   try {
@@ -199,6 +201,7 @@ router.get("/answer", (req, res) => {
   }
 });
 
+// 사용자가 푼 문제들 조회 - 리스트 {문제번호, 선택한 답} *사용 안함
 router.get("/answers", (req, res) => {
   console.log(`get answer`);
   try {
@@ -225,6 +228,29 @@ router.get("/answers", (req, res) => {
   }
 });
 
+// 사용자가 푼 문제 개수 조회
+router.get("/answers/solcount", async(req, res) => {
+  console.log("count solved questions");
+  const id = req.query.user_id;
+  
+  try {
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await User.usersModel.findOne({ _id: id });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const count = await UserAnswer.userAnswersModel.countDocuments({ user_id : id});
+    res.status(200).json(count);
+  } catch (err){
+    res.status(500).json(err);
+  }
+});
+
+// 답 선택 비율 조회
 router.get("/ratio", async (req, res) => {
   try {
     const messages = await UserAnswer.userAnswersModel.find({ question_id: req.query.question_id }).exec();
@@ -347,7 +373,7 @@ router.get("/question-detail", async (req, res) => {
 });
 
 // 문제 삭제 
-router.delete("/question", async (req,res) => {
+router.delete("/question/delete", async (req,res) => {
   const { _id, user_id, qualification_type } = req.query;
   console.log(`delete question by _id: ${_id} and user_id: ${user_id}`);
   try{
@@ -406,7 +432,7 @@ router.get("/category", async (req, res) => {
 });
 
 // 카테고리 삭제(하위 문제 전부 삭제)
-router.delete("/category", async (req,res) => {
+router.delete("/category/delete", async (req,res) => {
   const { qualification_type, is_admin } = req.query;
   console.log(`delete catgory`);
   
