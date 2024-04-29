@@ -442,6 +442,28 @@ router.delete("/question/delete", async (req,res) => {
   }
 });
 
+// 사용자가 추가한 문제 개수 조회
+router.get("/question/useraddcount", async(req, res) => {
+  console.log("count added questions");
+  const id = req.query.user_id;
+  
+  try {
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await User.usersModel.findOne({ _id: id });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const count = await Question.qstModel.countDocuments({ user_id : id});
+    res.status(200).json(count);
+  } catch (err){
+    res.status(500).json(err);
+  }
+});
+
 // category =========================================================================
 // 카테고리 추가
 router.post("/category", async (req, res) => {
