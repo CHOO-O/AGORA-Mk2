@@ -251,7 +251,7 @@ router.get("/answers/solcount", async(req, res) => {
 });
 
 // 사용자가 푼 문제 조회
-router.get("/answers/questions", async(req, res) => {
+router.get("/answers/solquestions", async(req, res) => {
   console.log(`get solved questions`);
   const id = req.query.user_id;
 
@@ -460,6 +460,39 @@ router.get("/question/useraddcount", async(req, res) => {
     const count = await Question.qstModel.countDocuments({ user_id : id});
     res.status(200).json(count);
   } catch (err){
+    res.status(500).json(err);
+  }
+});
+
+// 사용자가 추가한 문제 조회
+router.get("/question/useraddquestions", async (req, res) => {
+  console.log(`get added questions`);
+  const id = req.query.user_id;
+
+  try {
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await User.usersModel.findOne({ _id: id });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const questions = await Question.qstModel.find(
+      { user_id: id }
+    );
+
+    if (questions.length === 0) {
+      return res.status(404).json({ message: "No added questions" });
+    }
+
+    const list = {
+      data: questions.map((q) => q.toObject({ getters: false })),
+    };
+
+    res.status(200).json(list);
+  } catch (err) {
     res.status(500).json(err);
   }
 });
