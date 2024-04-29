@@ -418,20 +418,29 @@ router.get("/question-detail", async (req, res) => {
 
 // 문제 삭제 
 router.delete("/question/delete", async (req,res) => {
-  const { _id, user_id, qualification_type } = req.query;
+  const { _id, user_id } = req.query;
   console.log(`delete question by _id: ${_id} and user_id: ${user_id}`);
   try{
+    // 문제 id로 문제 find
+    const question = await Question.qstModel.findOne({
+      _id: _id
+    });
+
+    // 문제 자체가 존재하지 않으면 404
+    if (!question) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+    
+    if (question.user_id !== user_id) {
+      return res.status(403).json({ message: "user_id does not match" });
+    }
+
     const result = await Question.qstModel.deleteOne({
       _id: _id,
       user_id: user_id
     });
-
-    if (result.deletedCount === 1) {
-      // qstCounter 감소 
-      const findCount = await Question.qstCounter.findOne({ type: qualification_type });
-      findCount.count -= 1;
-      await findCount.save();
     
+    if (result.deletedCount === 1) {
       res.status(200).json({ message: "Question deleted successfully" });
     } else {
       res.status(404).json({ message: "Question not found" });
