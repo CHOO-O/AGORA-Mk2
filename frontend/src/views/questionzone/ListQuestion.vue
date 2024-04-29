@@ -18,77 +18,6 @@
 </template>
 
 <script>
-// local test용
-
-/*
-
-export default {
-    name: 'QuestionList',
-    data() {
-        return {
-            questions: [
-                {
-                    id: '1',
-                    user_id: 'test123',
-                    question_text: 'I am a boy',
-                },
-                {
-                    id: '2',
-                    user_id: 'test456',
-                    question_text: 'You are a girl',
-                },
-                {
-                    id: '3',
-                    user_id: 'test789',
-                    question_text: 'Oh no, don\'t do that!',
-                },
-                {
-                    id: '4',
-                    user_id: 'test101112',
-                    question_text: '언제끝나누',
-                },
-            ],
-            searchTerm: '',
-            qualification_type: '' // 초기값을 설정하지 않거나 적절한 값으로 설정합니다.
-        };
-    },
-    computed: {
-        filteredQuestions() {
-            return this.questions.filter(question =>
-                question.question_text.toLowerCase().includes(this.searchTerm.toLowerCase())
-            );
-        }
-    },
-    methods: {
-        addQuestion() {
-            this.$router.push({ name: 'addquestion', query: { category: this.qualification_type } });
-        }
-
-        ,
-        goToSolvingQuestion(questionId) {
-            this.$router.push({ name: 'solvingquestion', params: { questionId } });
-        },
-        goToDiscussQuestion(questionId) {
-            this.$router.push({ name: 'discussquestion', params: { questionId } });
-        },
-        deleteQuestion(questionId){
-            const index = this.questions.findIndex(question => question.id === questionId);
-            if (index !== -1){
-                this.questions.splice(index, 1);
-            }
-        },
-    },
-    created() {
-        this.qualification_type = decodeURIComponent(this.$route.query.category || '');
-    }
-};
-
-*/
-
-// 3-tier 테스트용
-
-
-
 import axios from 'axios';
 
 export default {
@@ -96,16 +25,17 @@ export default {
     data(){
         return {
             questions: [],
-            searchTeam: '',
+            searchTerm: '',
             qualification_type: ''
         };
     },
     computed: {
-        filteredQuestions() {
-            return this.questions.filter(question =>
-                question.question_text.toLowerCase().includes(this.searchTerm.toLowerCase())
-            );
-        }
+      filteredQuestions() {
+          return this.questions.filter(question =>
+              question.question_text && // question_text가 null 또는 undefined가 아닌 경우에만 진행합니다.
+              question.question_text.toLowerCase().includes(this.searchTerm.toLowerCase())
+          );
+      }
     },
     methods: {
         addQuestion() {
@@ -133,9 +63,10 @@ export default {
             });
         },
         deleteQuestion(questionId){
+            const userId = localStorage.getItem('user_id'); // 로컬 스토리지에서 사용자 ID 가져오기
             const index = this.questions.findIndex(question => question.id === questionId);
             if (index !== -1){
-                axios.delete(`${process.env.VUE_APP_BACKEND_API}/question-detail?_id=${questionId}&user_id=${this.userId}&qualification_type=${this.qualification_type}`)
+                axios.delete(`${process.env.VUE_APP_BACKEND_API}/question/delete?_id=${questionId}&user_id=${userId}`)
                     .then(response => {
                         if (response.status === 200){
                             this.questions.splice(index, 1);
@@ -143,8 +74,11 @@ export default {
                         }
                     })
                     .catch(error => {
+                      if (error.response.status === 403) {
+                        alert('본인이 등록한 문제만 삭제할 수 있습니다');
+                      } else {
                         console.error('Error deleting the question:', error);
-                        alert('Failed to delete the question');
+                        alert('Failed to delete the question');}
                     });
             }
         },
@@ -154,12 +88,7 @@ export default {
         this.loadQuestions(); // 데이터 로딩을 위해 메서드 호출
     }
 };
-
-
-
 </script>
-
-
 
 <style scoped>
 .container {
