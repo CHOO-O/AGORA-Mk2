@@ -36,6 +36,11 @@ const routes = [
     component: () => import('@/views/questionzone/DiscussQuestion.vue'),
     props: true,
   },
+  {
+    path: '/mypage',
+    name: 'mypage',
+    component: () => import('@/views/mypage/Mypage.vue'),
+  },
   //   {
   //     path: '/',
   //     name: 'signpage',
@@ -61,6 +66,7 @@ const routes = [
 
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
+  mode: 'history',
   routes
 })
 

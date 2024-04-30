@@ -2,10 +2,11 @@
     <header>
         <div class="headline">
             <!-- 이미지와 텍스트에 tabindex와 클래스 추가 -->
-            <img src="../../assets/image.png" class="clickable" style="max-width: 8%; height: auto;" @click="goToHomePage" tabindex="0">
-            <div class="headline-menu clickable" @click="goToHomePage" tabindex="0">
+            <img src="../../assets/mk2.png" class="clickable" style="max-width: 10%; height: auto;" @click="goToHomePage" tabindex="0">
+            <!-- <div class="headline-menu clickable" @click="goToHomePage" tabindex="0">
                 <p>AGORA</p>
-            </div>
+            </div> -->
+            <button class="mypage-button" v-if="$route.path !== '/'" @click="goToMyPage()">Mypage</button>
         </div>
     </header>
     <nav></nav>
@@ -20,7 +21,10 @@ export default {
     },
     methods: {
         goToHomePage() {
-            this.$router.push('/');
+          this.$router.push('/');
+        },
+        goToMyPage() {
+          this.$router.push('/mypage');  
         }
     }
 }
@@ -38,6 +42,8 @@ header {
     display: flex;
     height: 100%;
     align-items: center;
+    padding: 0 0.5% 0.5%;
+    justify-content: space-between;
 }
 
 .headline-menu {
@@ -59,5 +65,20 @@ header {
 .clickable:focus {
     outline: none; /* 기본 윤곽선 제거 */
     border: 2px solid #ccc; /* 포커스 시 윤곽선 추가 */
+}
+
+.mypage-button {
+    width: 10%;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 5px;
+    background: black;
+    color: white;
+    cursor: pointer;
+    margin-right: 1%
+}
+
+.mypage-button:hover {
+    background: #333;
 }
 </style>

@@ -271,7 +271,7 @@ router.get("/answers/solquestions", async(req, res) => {
     );
     
     if (answerkv.length === 0) {
-      return res.status(404).json({ message: "No solved questions" });
+      return res.status(204).json({ message: "No solved questions" });
     }
 
     // 가져온 값 question_id만 배열로 변환
@@ -493,7 +493,7 @@ router.get("/question/useraddquestions", async (req, res) => {
     );
 
     if (questions.length === 0) {
-      return res.status(404).json({ message: "No added questions" });
+      return res.status(204).json({ message: "No added questions" });
     }
 
     const list = {
