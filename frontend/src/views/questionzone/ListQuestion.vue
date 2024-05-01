@@ -25,6 +25,11 @@ export default {
     data(){
         return {
             questions: [],
+            // questions:[{
+            //     id: "1234",
+            //     user_id: "master",
+            //     question_text: "Test query"
+            // }],
             searchTerm: '',
             qualification_type: ''
         };
