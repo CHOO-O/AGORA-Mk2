@@ -5,6 +5,7 @@ const Discussion = require("./discussions");
 const UserAnswer = require("./userAnswers");
 const Question = require("./questions");
 const Category = require("./category");
+const userAnswers = require("./userAnswers");
 
 const router = express.Router();
 router.use(bodyParser.json());
@@ -435,10 +436,21 @@ router.delete("/question/delete", async (req,res) => {
       return res.status(403).json({ message: "user_id does not match" });
     }
 
+    // 문제 자체 삭제
     const result = await Question.qstModel.deleteOne({
       _id: _id,
       user_id: user_id
     });
+
+    // 문제 풀이여부 삭제 (useranswers)
+    await UserAnswer.userAnswersModel.deleteMany({
+      question_id: _id
+    })
+
+    // 문제 댓글 삭제 (discussions)
+    await Discussion.discussionsModel.deleteMany({
+      question_id: _id
+    })  
     
     if (result.deletedCount === 1) {
       res.status(200).json({ message: "Question deleted successfully" });
@@ -555,6 +567,17 @@ router.delete("/category/delete", async (req,res) => {
       await Question.qstModel.deleteMany({
         qualification_type: qualification_type
       })
+      
+      // 문제 풀이여부 삭제 (useranswers)
+      await UserAnswer.userAnswersModel.deleteMany({
+        question_id: new RegExp('^' + qualification_type + '_')
+      })
+
+      // 문제 댓글 삭제 (discussions)
+      await Discussion.discussionsModel.deleteMany({
+        question_id: new RegExp('^' + qualification_type + '_')
+      })  
+
       res.status(200).json({ message: "Category and Questions deleted successfully" });
     } catch (err) {
       res.status(500).json(err);
