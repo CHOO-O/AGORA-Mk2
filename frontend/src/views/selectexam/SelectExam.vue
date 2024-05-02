@@ -7,7 +7,8 @@
           {{ category }}
         </div>
         <!-- 삭제 버튼 추가 -->
-        <button v-if="isAdmin" @click="deleteCategory(category)" class="delete-button">삭제</button>
+        <button v-if="is_admin == 'true'" @click="deleteCategory(category)" class="delete-button">X</button>
+        <!-- <button @click="deleteCategory(category)" class="delete-button">X</button> -->
       </div>
       <!-- 새 시험 추가 버튼 -->
       <div class="category add-new" @click="showAddCategoryModal = true">
@@ -36,20 +37,13 @@ import axios from 'axios';
 export default {
   setup() {
     const categories = ref([]);
-    // 테스트용
-    // const categories = ref(['AWS', 'Azure', 'Google Cloud', 'Oracle']);
 
     const router = useRouter(); // useRouter 훅 사용
     const showAddCategoryModal = ref(false);
     const newCategoryName = ref('');
 
-    // 테스트용 - userid를 관리자로 하면 삭제 버튼이 보인다는 것을 증명하기 위한 코드
-    // localStorage.setItem('user_id', "admin");
-    // localStorage.setItem('user_id', "stranger");
-
-
-    const userId = localStorage.getItem('user_id');
-    const isAdmin = ref(userId === 'admin');
+    // const userId = localStorage.getItem('user_id');
+    const is_admin = localStorage.getItem('is_admin');
 
     onMounted(() => {
       // API를 통해 카테고리 리스트 불러오기
@@ -62,7 +56,7 @@ export default {
         }
       } catch (error) {
         console.error('Error fetching categories:', error);
-        console.log(isAdmin);
+        console.log(is_admin);
         if (error.response) {
           alert(`Error: ${error.response.data.message}`); // 직접 오류 메시지 처리
         }
@@ -97,29 +91,17 @@ export default {
       }
     };
 
-    // 카테고리 삭제 함수
-
-    // 얘는 로컬 테스트용 삭제 함수
-
-    // const deleteCategory = (category) => {
-    //   // 배열에서 해당 카테고리 찾기
-    //   const index = categories.value.indexOf(category);
-    //     if (index !== -1) {
-    //       // 카테고리 삭제
-    //       categories.value.splice(index, 1);
-    //       alert('Category and Questions deleted successfully');
-    //     } else {
-    //       alert('Category not found');
-    //     }
-    //   }; 
-    
-    // 얘는 axios를 사용한 삭제 함수
-
+    // 카테고리 삭제
     const deleteCategory = async (category) => {
+      const confirmDelete = confirm('정말로 이 카테고리를 삭제하시겠습니까?');
+      if (!confirmDelete) {
+        // 사용자가 '취소'를 클릭한 경우, 함수를 종료합니다.
+        return;
+      }
       try {
         const response = await axios.delete(`${process.env.VUE_APP_BACKEND_API}/category/delete`, {
           params: {
-            is_admin: true, // 관리자 권한 검사 필요시 로컬 스토리지에서 검증 후 설정
+            is_admin: is_admin,
             qualification_type: category
           }
         });
@@ -144,7 +126,7 @@ export default {
 
     return {
       categories,
-      isAdmin,
+      is_admin,
       addNewCategory,
       deleteCategory,
       goToQuestionZone,
@@ -171,6 +153,7 @@ export default {
 }
 
 .category {
+  position: relative;
   background-color: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -242,8 +225,15 @@ button {
 }
 
 .delete-button{
-  margin-top: 5em;
   color: rgb(255, 255, 255);
-  background-color: rgb(0, 0, 0);
+  background-color: rgb(254, 138, 138);
+  position: absolute;
+  top: 10px; 
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

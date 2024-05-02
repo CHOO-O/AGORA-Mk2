@@ -71,6 +71,11 @@ export default {
             const userId = localStorage.getItem('user_id'); // 로컬 스토리지에서 사용자 ID 가져오기
             const index = this.questions.findIndex(question => question.id === questionId);
             if (index !== -1){
+                const confirmDelete = confirm('정말로 이 문제를 삭제하시겠습니까?');
+                if (!confirmDelete) {
+                  // 사용자가 '취소'를 클릭한 경우, 함수를 종료합니다.
+                  return;
+                }
                 axios.delete(`${process.env.VUE_APP_BACKEND_API}/question/delete?_id=${questionId}&user_id=${userId}`)
                     .then(response => {
                         if (response.status === 200){

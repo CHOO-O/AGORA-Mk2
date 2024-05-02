@@ -92,12 +92,14 @@ export default {
                 const response = await axios.post(`${process.env.VUE_APP_BACKEND_API}/login`, {
                     user_id: loginForm.value.username,
                     password: loginForm.value.password,
+                    is_admin: loginForm.value.is_admin
                 });
                 // 상태 코드를 201로 확인
                 if (response.status === 201) {
                     console.log('로그인 성공:', response.data);
                     // localStorage에 토큰과 user_id 저장
                     localStorage.setItem('user_id', response.data.user_id); // 서버 수정에 따른 경로 변경
+                    localStorage.setItem('is_admin', response.data.is_admin);
 
                     message.value = '로그인 성공';
                     isSuccess.value = true;

@@ -70,4 +70,14 @@ const router = createRouter({
   routes
 })
 
+router.beforeEach((to, from, next) => {
+  // 여기서 특정 경로를 확인하여 localStorage 초기화
+  if (to.path === '/') {
+    localStorage.clear(); // localStorage 초기화
+  }
+  
+  // 다음 단계로 네비게이션을 진행합니다.
+  next();
+});
+
 export default router
