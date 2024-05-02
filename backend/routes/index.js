@@ -5,7 +5,6 @@ const Discussion = require("./discussions");
 const UserAnswer = require("./userAnswers");
 const Question = require("./questions");
 const Category = require("./category");
-const userAnswers = require("./userAnswers");
 
 const router = express.Router();
 router.use(bodyParser.json());
