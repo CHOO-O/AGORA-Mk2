@@ -363,4 +363,6 @@ spec:
       nodePort: 31019
   selector:
     app: mongodb
-    role: second-2
+    role: second-2\
+
+kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.12/config/manifests/metallb-native.yaml
