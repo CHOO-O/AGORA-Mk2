@@ -1,0 +1,366 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: frontend
+  labels:
+    app: frontend
+  name: frontend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - image: jungjunsung/webtest:23.0
+          name: front
+          volumeMounts:
+            - mountPath: /etc/localtime
+              name: front-claim0
+      volumes:
+        - name: front-claim0
+          persistentVolumeClaim:
+            claimName: front-claim0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: frontend
+  name: frontend-svc
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 3000
+    targetPort: 3000
+  type: ClusterIP
+
+    ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: backend
+data:
+  PORT: "8000"
+  MONGO_IP: "mongodb-svc.mongodb.svc.cluster.local"
+  MONGO_PORT: "27017"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: backend
+  labels:
+    app: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: manji955/testback:8.0
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: backend-config
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 300m
+            memory: 300Mi
+        volumeMounts:
+        - mountPath: /usr/src/app
+          name: backend-claim0
+      volumes:
+      - name: backend-claim0
+        persistentVolumeClaim:
+          claimName: backend-claim0
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: backend-pv
+  namespace: backend
+  labels:
+    app: backend
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: "/backend-storage/b1"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backend-claim0
+  namespace: backend
+  labels:
+    app: backend
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Mi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-svc
+  namespace: backend
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP
+    ---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongodb-master-pv
+spec:
+  capacity:
+    storage: 4G
+  accessModes:
+  - ReadWriteOnce
+  local:
+    path: /home/student/mongodb1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - {key: kubernetes.io/hostname, operator: In, values: [k8s-node1]}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongodb-second-1-pv
+spec:
+  capacity:
+    storage: 4G
+  accessModes:
+  - ReadWriteOnce
+  local:
+    path: /home/student/mongodb2
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - {key: kubernetes.io/hostname, operator: In, values: [k8s-node1]}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongodb-second-2-pv
+spec:
+  capacity:
+    storage: 4G
+  accessModes:
+  - ReadWriteOnce
+  local:
+    path: /home/student/mongodb3
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - {key: kubernetes.io/hostname, operator: In, values: [k8s-node1]}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-master-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: mongodb-master-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-second-1-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: mongodb-second-1-pv
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-second-2-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  volumeName: mongodb-second-2-pv
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+      role: master
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        role: master
+    spec:
+      containers:
+        - name: mongodb1
+          image: mongo:4.2.3
+          ports:
+            - containerPort: 27017
+          command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+          volumeMounts:
+            - name: mongodb-master-data
+              mountPath: /data/db
+      volumes:
+        - name: mongodb-master-data
+          persistentVolumeClaim:
+            claimName: mongodb-master-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-second-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+      role: second-1
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        role: second-1
+    spec:
+      containers:
+        - name: mongodb2
+          image: mongo:4.2.3
+          ports:
+            - containerPort: 27018
+          command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27018"]
+          volumeMounts:
+            - name: mongodb-second-1-data
+              mountPath: /data/db
+      volumes:
+        - name: mongodb-second-1-data
+          persistentVolumeClaim:
+            claimName: mongodb-second-1-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb-second-2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+      role: second-2
+  template:
+    metadata:
+      labels:
+        app: mongodb
+        role: second-2
+    spec:
+      containers:
+        - name: mongodb3
+          image: mongo:4.2.3
+          ports:
+            - containerPort: 27019
+          command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27019"]
+          volumeMounts:
+            - name: mongodb-second-2-data
+              mountPath: /data/db
+      volumes:
+        - name: mongodb-second-2-data
+          persistentVolumeClaim:
+            claimName: mongodb-second-2-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb1
+  labels:
+    app: mongodb
+    role: master
+spec:
+  type: NodePort
+  ports:
+    - port: 27017
+      targetPort: 27017
+      nodePort: 31017
+  selector:
+    app: mongodb
+    role: master
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb2
+  labels:
+    app: mongodb
+    role: second-1
+spec:
+  type: NodePort
+  ports:
+    - port: 27018
+      targetPort: 27018
+      nodePort: 31018
+  selector:
+    app: mongodb
+    role: second-1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongodb3
+  labels:
+    app: mongodb
+    role: second-2
+spec:
+  type: NodePort
+  ports:
+    - port: 27019
+      targetPort: 27019
+      nodePort: 31019
+  selector:
+    app: mongodb
+    role: second-2
