@@ -1,0 +1,34 @@
+git init
+ls -al
+git add .
+get config --global user.email "how0626@naver.com"
+git config --global user.email "how0626@naver.com"
+git config --global user.name "TIMID99"
+git commit -m "grayround project CI"
+git remote add origin "https://github.com/TIMID99/docker-ci"
+git remote -v
+
+git init
+git add .
+git config --global user.email "how0626@naver.com"
+git config --global user.name "TIMID99"
+git commit -m "grayround project CI"
+history
+git remote add origin "https://github.com/TIMID99/docker-ci"
+git remote -v
+git push -u origin +master
+
+git status
+git add .
+git status
+git push -u origin +master
+history
+git status
+git push -u origin +master
+git status
+git add .
+git status
+git commit -m "ADD: yaml"
+git push
+git push -u origin +master
+git push -u origin +master
